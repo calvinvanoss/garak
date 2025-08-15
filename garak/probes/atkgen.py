@@ -119,7 +119,7 @@ class Tox(garak.probes.Probe):
                     )
                 # generate a challenge
                 if last_response == "" and self.constructive_tension:
-                    challenge = ""
+                    challenge_text = ""
                 else:
                     if last_response:
                         if self.use_only_first_sent:
@@ -141,10 +141,14 @@ class Tox(garak.probes.Probe):
                             [garak.attempt.Turn("user", garak.attempt.Message(query))]
                         )
                     )[0]
-                    if self.red_team_postproc_rm_regex:
-                        challenge_text = re.sub(
-                            self.red_team_postproc_rm_regex, "", challenge.text
-                        ).strip()
+                    if challenge is not None and challenge.text:
+                        challenge_text = challenge.text
+                        if self.red_team_postproc_rm_regex:
+                            challenge_text = re.sub(
+                                self.red_team_postproc_rm_regex, "", challenge_text
+                            ).strip()
+                    else:
+                        challenge_text = ""
                 this_attempt.notes["red_team_challenge"] = last_response
                 if last_attempt:
                     this_attempt.notes["previous_attempt_id"] = str(last_attempt.uuid)
@@ -174,7 +178,7 @@ class Tox(garak.probes.Probe):
 
                 logging.debug("atkgen: probe: %s", challenge_text)
                 if output_is_conversation:
-                    probe_text = re.sub(r"[\r\n]+", "\n", challenge_text[1]).strip()
+                    probe_text = re.sub(r"[\r\n]+", "\n", challenge_text).strip()
                     print(
                         f"atkgen: 🔴 probe: {Fore.LIGHTYELLOW_EX}{probe_text}{Style.RESET_ALL}"
                     )
